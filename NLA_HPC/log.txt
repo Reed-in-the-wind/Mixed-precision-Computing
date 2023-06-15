@@ -1,6 +1,0 @@
-Serving notebooks from local directory: /media/chenglong/Extreme SSD/CodeRepos/NLA_HPC
-1 active kernel
-Jupyter Notebook 6.4.0 is running at:
-http://localhost:8888/?token=5e158e81481e19dc31465a0bfd1adf5347e9a49277b91957
- or http://127.0.0.1:8888/?token=5e158e81481e19dc31465a0bfd1adf5347e9a49277b91957
-Shutdown this notebook server (y/[n])? 
