@@ -6,7 +6,7 @@ using namespace std;
 #define PI 3.14159265359f
  
 // it's vector type.
-template <class T>
+template <class Th, class T>
 class DualNumber
 {
 private:
@@ -14,37 +14,117 @@ private:
     size_t m_size;
     vector<T> m_real;
     vector<T> m_dual;
-    vector<T> m_abs;
+    vector<Th> m_abs;
 
 public:
     // initialize.
-    // Constructor.
-    DualNumber (size_t size = 0, T value = (T)0.0): InitValue(value), m_size(size), m_real(m_size, InitValue), m_dual(m_size, InitValue)
-    {}
-    
+    // Constructor 1.
+    // define the vector size and InitValue.
+    DualNumber (size_t size = 0, T value = (T)0.0): InitValue(value), m_size(size),
+                              m_real(m_size, InitValue), m_dual(m_size, InitValue)
+    {
+    }
+    // Constructor 2.
+    // construct the class using input real and dual part vectors.
+    DualNumber ( vector<T> A, vector<T> B )
+    {
+        m_real = A;
+        m_dual = B;
+        m_size = A.size();
+        InitValue = (T)0.0;
+    }
+    // Constructor 3.
+    // construct the class by spliting the initial high-precision vectors
+    /*DualNumber ( vector<Th> C )
+    {
+        m_real = C;
+        m_dual = C - m_real;
+        m_size = C.size();
+        InitValue = (T)0.0;
+    }
+    */
     // basic function
     vector<T> Real () { return m_real; }
     vector<T> Dual () { return m_dual; }
     size_t Size () const { return m_size; }
     T InitV() const { return InitValue; }
-};
- 
+    //
+    vector<Th> Get_Abs( ) {
+        vector<Th> m_abs(m_size);
+        for ( auto i = 0; i < m_size; ++i ) {
+            m_abs[i] = (Th)m_real[i] + (Th)m_dual[i];
+        }
+        return m_abs;
+    }
+    vector<T> InitDualNumber( vector<Th> &A );
+    //
+    // operator overloading.
+    DualNumber<Th, T> operator+(const DualNumber &A) const;
+    DualNumber<Th, T> operator-(const DualNumber &A) const;
+}; 
 //----------------------------------------------------------------------
 // Math Operations
 //----------------------------------------------------------------------
-template <class Th, class T>
-inline vector<Th> Abs( DualNumber<T> &A ) {
-    vector<Th> Abs(A.Size());
-    vector<T> V1, V2;
-    V1 = A.Real();
-    V2 = A.Dual();
-    for ( auto i = 0; i < Abs.size(); ++i ) {
-        Abs[i] = (Th)V1[i] + (Th)V2[i];
+template<class Th, class T>
+inline DualNumber<Th, T> DualNumber<Th, T>::operator+(const DualNumber<Th, T> &A) const {
+    vector<T> m_real0;
+    vector<T> m_dual0;
+    for ( auto i = 0; i < A.Size(); ++i ) {
+        m_real0.push_back( (T)(m_real[i] + A.m_real[i]) );
+        m_dual0.push_back( (T)(m_dual[i] + A.m_dual[i]) );
     }
-    return Abs;
+    return DualNumber<Th, T>( m_real0, m_dual0);
+}
+template<class Th, class T>
+inline DualNumber<Th, T> DualNumber<Th, T>::operator-(const DualNumber<Th, T> &A) const {
+    vector<T> m_real0;
+    vector<T> m_dual0;
+    for ( auto i = 0; i < A.Size(); ++i ) {
+        m_real0.push_back( (T)(m_real[i] - A.m_real[i]) );
+        m_dual0.push_back( (T)(m_dual[i] - A.m_dual[i]) );
+    }
+    return DualNumber<Th, T>( m_real0, m_dual0);
+}
+// addition of Dual Number Vectors
+template <class Th, class T>
+inline vector<T> DualNumber<Th, T>::InitDualNumber( vector<Th> &A ) {
+    // input: a high precision vector A, do variable splitting ops.
+    vector<T> temp(A.size());
+    return temp;
+}
+//
+template <class T>
+inline vector<T> operator - ( const vector<T> &A, const vector<T> &B )
+{
+    vector<T> DualPart;
+    for ( auto i = 0; i < A.size(); ++i ) {
+        DualPart.push_back( A[i] - B[i] );
+    }
+    return DualPart;
+}
+template <class T>
+inline vector<T> operator + ( const vector<T> &A, const vector<T> &B )
+{
+    vector<T> DualPart;
+    for ( auto i = 0; i < A.size(); ++i ) {
+        DualPart.push_back( A[i] + B[i] );
+    }
+    return DualPart;
 }
 
+//
 /*
+template <class Th, class T>
+inline friend vector<T> operator = ( const vector<T> &A, const vector<Th> &B )
+{
+    for ( auto i = 0; i < A.size(); ++i ) {
+        A[i] = (T)B[i];
+    }
+    return A;
+}
+*/
+/*
+//
 template <class T>
 inline DualNumber<T> operator + (const DualNumber<T> &a, const DualNumber<T> &b)
 {
