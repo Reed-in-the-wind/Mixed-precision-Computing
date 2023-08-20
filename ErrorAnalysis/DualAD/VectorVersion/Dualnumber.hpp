@@ -26,13 +26,25 @@ public:
     }
     // Constructor 2.
     // construct the class using input real and dual part vectors.
-    DualNumber ( vector<T> A, vector<T> B )
+    DualNumber ( vector<T> &A, vector<T> &B )
     {
-        m_real = A;
-        m_dual = B;
+        for ( auto i = 0; i < A.size(); ++i ) {
+            m_real.push_back(A[i]);
+            m_dual.push_back(B[i]);
+        }
         m_size = A.size();
         InitValue = (T)0.0;
     }
+    /*
+    DualNumber (DualNumber<Th, T> &A)
+    {
+        this->m_real(A.m_real);
+        this->m_dual(A.m_dual);
+        this->m_size = A.m_size;
+        this->InitValue = A.InitValue;
+        this->m_Abs
+    }
+    */
     // Constructor 3.
     // construct the class by spliting the initial high-precision vectors
     /*DualNumber ( vector<Th> C )
@@ -57,16 +69,23 @@ public:
         return m_abs;
     }
     vector<T> InitDualNumber( vector<Th> &A );
+    DualNumber<Th, T> pow(size_t y);
     //
     // operator overloading.
-    DualNumber<Th, T> operator+(const DualNumber &A) const;
-    DualNumber<Th, T> operator-(const DualNumber &A) const;
+    DualNumber<Th, T> operator + (const DualNumber<Th, T> &A) const;
+    DualNumber<Th, T> operator - (const DualNumber<Th, T> &A) const;
+    DualNumber<Th, T> operator * (const DualNumber<Th, T> &A) const;
+    DualNumber<Th, T> operator / (const DualNumber<Th, T> &A) const;
+    void operator += (const DualNumber<Th, T> &A) const;
+    void operator -= (const DualNumber<Th, T> &A) const;
+    void operator *= (const DualNumber<Th, T> &A) const;
+    void operator /= (const DualNumber<Th, T> &A) const;
 }; 
 //----------------------------------------------------------------------
 // Math Operations
 //----------------------------------------------------------------------
 template<class Th, class T>
-inline DualNumber<Th, T> DualNumber<Th, T>::operator+(const DualNumber<Th, T> &A) const {
+inline DualNumber<Th, T> DualNumber<Th, T>::operator + (const DualNumber<Th, T> &A) const {
     vector<T> m_real0;
     vector<T> m_dual0;
     for ( auto i = 0; i < A.Size(); ++i ) {
@@ -76,7 +95,7 @@ inline DualNumber<Th, T> DualNumber<Th, T>::operator+(const DualNumber<Th, T> &A
     return DualNumber<Th, T>( m_real0, m_dual0);
 }
 template<class Th, class T>
-inline DualNumber<Th, T> DualNumber<Th, T>::operator-(const DualNumber<Th, T> &A) const {
+inline DualNumber<Th, T> DualNumber<Th, T>::operator - (const DualNumber<Th, T> &A) const {
     vector<T> m_real0;
     vector<T> m_dual0;
     for ( auto i = 0; i < A.Size(); ++i ) {
@@ -84,6 +103,77 @@ inline DualNumber<Th, T> DualNumber<Th, T>::operator-(const DualNumber<Th, T> &A
         m_dual0.push_back( (T)(m_dual[i] - A.m_dual[i]) );
     }
     return DualNumber<Th, T>( m_real0, m_dual0);
+}
+template<class Th, class T>
+inline DualNumber<Th, T> DualNumber<Th, T>::operator * (const DualNumber<Th, T> &A) const {
+    vector<T> m_real0;
+    vector<T> m_dual0;
+    for ( auto i = 0; i < A.Size(); ++i ) {
+        m_real0.push_back( (T)(m_real[i] * A.m_real[i]) );
+        m_dual0.push_back( (T)(m_real[i] * A.m_dual[i] + m_dual[i] * A.m_dual[i]) );
+    }
+    return DualNumber<Th, T>( m_real0, m_dual0);
+}
+template<class Th, class T>
+inline DualNumber<Th, T> DualNumber<Th, T>::operator / (const DualNumber<Th, T> &A) const {
+    vector<T> m_real0;
+    vector<T> m_dual0;
+    for ( auto i = 0; i < A.Size(); ++i ) {
+        m_real0.push_back( (T)(m_real[i] / A.m_real[i]) );
+        m_dual0.push_back( (T)((m_dual[i]*A.m_real[i] - m_real[i]*A.m_dual[i]) / std::pow(A.m_real[i],2)) );
+    }
+    return DualNumber<Th, T>( m_real0, m_dual0);
+}
+template<class Th, class T>
+inline void DualNumber<Th, T>::operator += (const DualNumber<Th, T> &A) const {
+    for ( auto i = 0; i < A.Size(); ++i ) {
+        m_real[i] += A.m_real[i];
+        m_dual[i] += A.m_dual[i];
+    }
+    //return DualNumber<Th, T>( m_real0, m_dual0);
+}
+template<class Th, class T>
+inline void DualNumber<Th, T>::operator -= (const DualNumber<Th, T> &A) const {
+    for ( auto i = 0; i < A.Size(); ++i ) {
+        m_real[i] -= A.m_real[i];
+        m_dual[i] -= A.m_dual[i];
+    }
+    //return DualNumber<Th, T>( m_real0, m_dual0);
+}
+template<class Th, class T>
+inline void DualNumber<Th, T>::operator *= (const DualNumber<Th, T> &A) const {
+    for ( auto i = 0; i < A.Size(); ++i ) {
+        m_real[i] *= A.m_real[i];
+        m_dual[i] *= A.m_real[i];
+        m_dual[i] += m_real[i] * A.m_dual[i];
+    }
+    //return DualNumber<Th, T>( m_real0, m_dual0);
+}
+template<class Th, class T>
+inline void DualNumber<Th, T>::operator /= (const DualNumber<Th, T> &A) const {
+    for ( auto i = 0; i < A.Size(); ++i ) {
+        m_real[i] /= A.m_real[i];
+        m_dual[i] /= A.m_dual[i];
+    }
+    //return DualNumber<Th, T>( m_real0, m_dual0);
+}
+template<class Th, class T>
+inline DualNumber<Th, T> DualNumber<Th, T>::pow( size_t y)
+{
+    DualNumber<Th, T> pow_DN(this->m_real, this->m_dual);
+    for ( auto i = 0; i < y; ++i ) {
+        pow_DN *= this;
+    }
+    /*
+    vector<T> m_real0;
+    vector<T> m_dual0;
+    for ( auto i = 0; i < m_size; ++i ) {
+        m_real0.push_back( std::pow(m_real[i], y) );
+        m_dual0.push_back( std::pow(m_dual[i], y) );
+    }
+    */
+    //return DualNumber<Th, T>(m_real0, m_dual0);
+    return pow_DN;
 }
 // addition of Dual Number Vectors
 template <class Th, class T>
